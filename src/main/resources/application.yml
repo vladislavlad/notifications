@@ -1,0 +1,49 @@
+spring:
+# notifications DB
+#  r2dbc:
+#    url: r2dbc:postgresql://localhost:5432/accounts #
+#    username: accounts
+#    password: accounts
+#  flyway:
+#    url: jdbc:postgresql://localhost:5432/accounts
+#    user: ${spring.r2dbc.username}
+#    password: ${spring.r2dbc.password}
+#    locations: classpath:db/migration
+  kafka:
+    bootstrap-servers: localhost:9092
+  cloud:
+    function:
+      definition: notifications
+    stream:
+      default-binder: kafka
+      kafka:
+        binder:
+#          auto-create-topics: true # remove?
+          brokers: localhost:9092
+          healthTimeout: 10
+          requiredAcks: 1
+          minPartitionCount: 1
+          replicationFactor: 1
+      bindings:
+        notifications-in-0: # notifications == name-of consumer/topic
+          # partition-count: 3 (optional)
+          group: notification-service
+          destination: notifications
+          binder: kafka
+
+server:
+  port: 8070
+
+management:
+  health:
+    db:
+      enabled: true
+    defaults:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health, mappings
